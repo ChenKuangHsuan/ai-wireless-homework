@@ -1,4 +1,4 @@
-# FedProx Implementation for MNIST
+# Exercise 6.6 (FedProx Implementation for MNIST)
 
 This repository contains an implementation of FedProx (Federated Proximal) algorithm for distributed machine learning on the MNIST dataset. FedProx is an extension of FedAvg that addresses the challenges of heterogeneous federated networks by adding a proximal term to the local objective.
 
