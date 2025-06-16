@@ -19,17 +19,17 @@ left_lanes = [i/2.0 for i in [3.5/2, 3.5/2 + 3.5, 433+3.5/2, 433+3.5+3.5/2, 866+
 right_lanes = [i/2.0 for i in [433-3.5-3.5/2, 433-3.5/2, 866-3.5-3.5/2, 866-3.5/2, 1299-3.5-3.5/2, 1299-3.5/2]]
 width = 750/2
 height = 1298/2
-label = 'marl_model4_3_0_1'
+label = 'marl_model'
 n_veh = 4 # For the number of the vehicles in each direction remain same, n_veh % 4 == 0
-n_neighbor = 3
+n_neighbor = 1
 n_RB = n_veh
 # Environment Parameters
 env = Environment_marl.Environ(down_lanes, up_lanes, left_lanes, right_lanes, width, height, n_veh, n_neighbor)
 env.new_random_game()   # initialize parameters in env
-n_episode = 30
+n_episode = 3000
 n_step_per_episode = int(env.time_slow/env.time_fast)
 epsi_final = 0.02
-epsi_anneal_length = int(0.8*n_episode)
+epsi_anneal_length = int(0.85*n_episode)
 mini_batch_step = n_step_per_episode
 target_update_step = n_step_per_episode*4
 n_episode_test = 100  # test episodes
@@ -39,7 +39,7 @@ n_hidden_3 = 120
 ######################################################
 
 
-def get_state(env, idx=(0, 0), ind_episode=1., epsi=0.02, n=0.):
+def get_state(env, idx=(0, 0), ind_episode=1., epsi=0.02):
     """ Get state from the environment """
 
     # V2I_channel = (env.V2I_channels_with_fastfading[idx[0], :] - 80) / 60
@@ -56,8 +56,7 @@ def get_state(env, idx=(0, 0), ind_episode=1., epsi=0.02, n=0.):
     load_remaining = np.asarray([env.demand[idx[0], idx[1]] / env.demand_size])
     time_remaining = np.asarray([env.individual_time_limit[idx[0], idx[1]] / env.time_slow])
 
-    return np.concatenate((V2I_fast, np.reshape(V2V_fast, -1), V2V_interference, np.asarray([V2I_abs]), V2V_abs,
-                           time_remaining, load_remaining, np.asarray([ind_episode, epsi])))
+    return np.concatenate((V2I_fast, np.reshape(V2V_fast, -1), V2V_interference, np.asarray([V2I_abs]), V2V_abs, time_remaining, load_remaining, np.asarray([ind_episode, epsi])))
 
 
 n_input_size = len(get_state(env=env))
@@ -83,11 +82,10 @@ class DQN(nn.Module):
         x = F.relu(self.fc_4(x))
         return x
 
-
 class Agent:
     def __init__(self, memory_entry_size):
         self.discount = 1
-        self.double_q = True
+        self.double_q = False
         self.memory_entry_size = memory_entry_size
         self.memory = ReplayMemory(self.memory_entry_size)
         self.model = DQN(n_input_size, n_hidden_1, n_hidden_2, n_hidden_3, n_output_size).to(device)
@@ -102,12 +100,12 @@ class Agent:
     def predict(self, s_t, ep=0.):
         n_power_levels = len(env.V2V_power_dB_List)
         # state_t = torch.from_numpy(s_t).type(torch.float32).view([1, self.memory_entry_size])
-        if torch.rand(1) > ep:
+        if random.random() > ep:
             with torch.no_grad():
                 q_values = self.model(torch.tensor(s_t, dtype=torch.float32).unsqueeze(0).to(device))
                 return q_values.max(1)[1].item()
         else:
-            return random.choice(range(n_power_levels * n_RB))
+            return random.choice(range(n_power_levels))
 
     def Q_Learning_mini_batch(self):  # Double Q-Learning
         batch_s_t, batch_s_t_plus_1, batch_action, batch_reward = self.memory.sample()
@@ -182,7 +180,7 @@ for i_episode in range(n_episode):
         action_all_training = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
         for i in range(n_veh):
             for j in range(n_neighbor):
-                state = get_state(env, [i, j], i_episode / (n_episode - 1), epsi, i * n_neighbor + j)
+                state = get_state(env, [i, j], i_episode / (n_episode - 1), epsi)
                 state_old_all.append(state)
                 action = agents[i * n_neighbor + j].predict(state, epsi)
                 action_all.append(action)
@@ -202,7 +200,7 @@ for i_episode in range(n_episode):
             for j in range(n_neighbor):
                 state_old = state_old_all[n_neighbor * i + j]
                 action = action_all[n_neighbor * i + j]
-                state_new = get_state(env, [i, j], i_episode / (n_episode - 1), epsi, i * n_neighbor + j)
+                state_new = get_state(env, [i, j], i_episode / (n_episode - 1), epsi)
                 # add entry to this agent's memory
                 agents[i * n_neighbor + j].memory.add(state_old, state_new, train_reward, action)
 
