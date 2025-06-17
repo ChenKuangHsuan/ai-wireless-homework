@@ -26,7 +26,7 @@ The main configuration parameters are:
 NUM_CLIENTS = 20        # Number of participating clients
 COMM_ROUNDS = 100       # Number of communication rounds
 LOCAL_EPOCHS = 5        # Number of local training epochs
-BATCH_SIZE = 32         # Batch size for training
+BATCH_SIZE = 64         # Batch size for training
 MU_VALUES = [0, 0.01, 0.1]  # Proximal term coefficients to test
 ALPHA = 0.5             # Dirichlet concentration parameter for non-IID partitioning
 ```
@@ -36,8 +36,8 @@ ALPHA = 0.5             # Dirichlet concentration parameter for non-IID partitio
 ### Model Architecture
 
 A convolutional neural network with:
-- Two convolutional layers (32 and 64 filters)
-- Two fully connected layers (512 neurons and 10 output classes)
+- Two convolutional layers (10 and 20 filters)
+- Two fully connected layers (50 neurons and 10 output classes)
 - ReLU activation and max pooling
 
 ### Data Partitioning
@@ -59,7 +59,7 @@ Where:
 
 ### Client Selection
 
-In each round, 50% of clients are randomly selected to participate in training.
+In each round, all clients participate in training.
 
 ## Running the Experiments
 
@@ -78,6 +78,3 @@ The implementation generates a plot showing test accuracy over communication rou
 
 The results are saved as 'fedprox_results.png' in the current directory.
 
-## References
-
-Li, T., Sahu, A. K., Zaheer, M., Sanjabi, M., Talwalkar, A., & Smith, V. (2020). Federated Optimization in Heterogeneous Networks. MLSys 2020.
