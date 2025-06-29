@@ -37,6 +37,17 @@ where:
 > **Hint:** Re-use the pattern `((w - w_glob.detach()) ** 2).sum()` to compute
 > $\left\\| w - w_t \right\\|^2$ across all parameters.
 
+## Configuration (default)
+
+```python
+NUM_CLIENTS   = 20              # Total number of simulated clients
+COMM_ROUNDS   = 100             # Global communication (aggregation) rounds
+LOCAL_EPOCHS  = 5               # Local training epochs per round
+BATCH_SIZE    = 64              # Mini-batch size for client training
+ALPHA         = 0.5             # Dirichlet concentration parameter (smaller ⇒ more skew)
+MU_VALUES     = [0, 0.01, 0.1]  # Proximal-term coefficients to test
+```
+
 
 ## Expected Outcome
 
