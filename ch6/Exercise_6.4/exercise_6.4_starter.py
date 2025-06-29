@@ -60,12 +60,6 @@ class MNISTCNN(nn.Module):
 
 
 # ────────────────────────  Data Preparation  ──────────────────────────────── #
-transform   = transforms.Compose([transforms.ToTensor()])
-train_data  = datasets.MNIST("./data", train=True,  download=True, transform=transform)
-test_data   = datasets.MNIST("./data", train=False, download=True, transform=transform)
-test_loader = DataLoader(test_data, batch_size=1000)
-
-
 def dirichlet_split(dataset, num_clients, alpha):
     """
     Partition `dataset` into `num_clients` subsets using a Dirichlet distribution.
