@@ -1,8 +1,8 @@
-from opencood.models.torch_tdl.channel_utils_torch import expand_to_rank,insert_dims,\
+from TDL_torch_starter.channel_utils_torch import expand_to_rank,insert_dims,\
                                 subcarrier_frequencies,cir_to_ofdm_channel,\
                                 complex_normal
-from opencood.models.torch_tdl.TDL_torch import TDL
-from opencood.models.torch_tdl.TDL_torch import PI,SPEED_OF_LIGHT
+from TDL_torch_starter import TDL
+from TDL_torch_starter import PI,SPEED_OF_LIGHT
 import torch
 import scipy.io
 #print(PI)
