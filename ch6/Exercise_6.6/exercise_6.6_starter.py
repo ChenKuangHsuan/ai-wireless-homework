@@ -1,15 +1,15 @@
 """
 Exercise 6.6: FedAvg Implementation under Packet Loss
-This program demonstrates how packet loss affects federated learning convergence
-using the MNIST dataset and a CNN model under non-IID data distribution.
 
-----------------------------------------------------------
+This script simulates federated learning on a non-i.i.d. MNIST dataset
+(Dirichlet split, α=0.5). It compares the convergence behavior across
+different packet-loss rates (1%, 5%, 10%).
 
-You should complete the two TODO blocks:
-1. `unreliable_channel`: randomly drop client updates with probability `loss_rate`.
-2. `client_train`: compute NLL loss, back-propagate, and update parameters.
-
-Run the script when finished to observe how packet loss affects convergence.
+TODO:
+1. Complete the `unreliable_channel` function to randomly drop client updates
+   based on the specified loss rate.
+2. Complete the `client_train` function. You need to implement the standard
+   local training loop optimizing the NLLLoss.
 """
 
 import numpy as np
