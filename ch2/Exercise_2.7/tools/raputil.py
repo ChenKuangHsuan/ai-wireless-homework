@@ -302,15 +302,47 @@ def LS_CE(Y,pilotValue,pilotCarriers,K,P,int_opt):
         H_LS = interpolate(LS_est,pilotCarriers,K,1)
     return H_LS
 
-def MMSE_CE(Y,pilotValue,pilotCarriers,K,P,h,SNR):
-    # Please fill in the blanks in the following codes
+def MMSE_CE(Y, pilotValue, pilotCarriers, K, P, h, SNR):
+    # 1. 基礎 LS 估測
+    H_LS = Y / pilotValue  # 長度為 P (16)
 
-    '# YOUR CODE HERE'
+    # 2. 建立 KxK 的時域相關矩陣 R_hh (64x64)
+    # 我們已知頻道長度為 L (例如 16)，其餘部分為 0
+    L = len(h)
+    gh = np.abs(h)**2
+    R_hh_small = np.diag(gh) 
+    
+    # 建立一個全零的 64x64 矩陣，並把 16x16 的內容放左上角
+    R_hh = np.zeros((K, K), dtype=complex)
+    R_hh[0:L, 0:L] = R_hh_small
 
-    W_MMSE = '# YOUR CODE HERE'
-    H_MMSE = '# YOUR CODE HERE'
+    # 3. 定義 DFT 矩陣 F (64x64)
+    # 建立方式：F[m, n] = exp(-j * 2 * pi * m * n / K)
+    m = np.arange(K).reshape(K, 1)
+    n = np.arange(K)
+    F = np.matrix(np.exp(-2j * np.pi * m * n / K))
 
-    return H_MMSE,W_MMSE
+    # 4. 計算相關矩陣 (使用 @ 進行矩陣乘法)
+    # R_HH: 整個頻道的相關性 (64x64)
+    R_HH = F @ R_hh @ F.H
+    
+    # R_H_Hp: 整個頻道與「導頻位置」的互相關 (64 x P)
+    # F_p 是只取導頻所在的那幾列
+    F_p = F[pilotCarriers, :]
+    R_H_Hp = F @ R_hh @ F_p.H
+    
+    # R_Hp_Hp: 導頻位置之間的自相關 (P x P)
+    R_Hp_Hp = F_p @ R_hh @ F_p.H
+
+    # 5. LMMSE 權重計算
+    sigma2 = 10**(-SNR/10)
+    # W_MMSE = R_H_Hp * inv(R_Hp_Hp + sigma2 * I)
+    W_MMSE = R_H_Hp @ np.linalg.inv(R_Hp_Hp + sigma2 * np.eye(P))
+
+    # 6. 得到估測結果
+    H_MMSE = np.array(W_MMSE @ H_LS.reshape(P, 1)).flatten()
+
+    return H_MMSE, W_MMSE
 
 interpolate_method = 1
 def interpolate(H_est,pilotCarriers,K,method): #for P<K 只能在内部插  complex can be interpolate?
@@ -588,8 +620,9 @@ def test_ce(sess, input_holder, output, SNR, est_type, NoCP=False, CP_flag=True)
             MSE_F += np.sum((estimated_H - Hpart) ** 2) / np.sum(Hpart ** 2)
             MSE_T += 1e-5
         else:
+           
             # calculate MSE in frequency or time domain  todo: 注意fft不归一化是否有问题
-            estimated_h = np.fft.ifft(estimated_H[downsampler])
+            estimated_h = np.fft.ifft(estimated_H[downsampler.astype(int)])
             MSE_F += np.sum(abs(estimated_H - Htrue) ** 2) / np.sum(abs(Htrue) ** 2)
             MSE_T += np.sum(abs(estimated_h - h) ** 2) / np.sum(abs(h) ** 2)
 

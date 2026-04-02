@@ -25,19 +25,19 @@ def build_ce_dnn(K, SNR, savefile, learning_rate=1e-3, training_epochs=2000, bat
     n_output = 2 * K
 
     # please fill in the blank in the following codes
-    nn_input = '# YOUR CODE HERE 1'
-    H_true = '# YOUR CODE HERE 2'    # label
+    nn_input = tf.placeholder(tf.float32, [None, n_input], name='nn_input')  # (bs, 4K)
+    H_true = tf.placeholder(tf.float32, [None, n_output], name='H_true')  # label
 
-    dense1 = '# YOUR CODE HERE 3'
-    dense2 = '# YOUR CODE HERE 4'
-    output_layer = '# YOUR CODE HERE 5'
+    dense1 = Dense(nh1, activation=tf.nn.relu)(nn_input)  # (bs, nh1)
+    dense2 = Dense(nh2, activation=tf.nn.relu)(dense1)  # (bs, nh2)
+    output_layer = Dense(n_output, activation=None)(dense2)  # (bs, n_output)
 
-    tmp = '# YOUR CODE HERE 6'
-    tmp = '# YOUR CODE HERE 7'
-    H_out = '# YOUR CODE HERE 8'
+    tmp = shrinkage.shrink_soft_threshold(output_layer, rvar=10.0**(-SNR/10), theta=tf.constant(0.3))[0]  # 只要tuple的第一个元素，(bs, n_output)
+    tmp = tf.reshape(tmp, [-1, K, 2])  # (bs, K, 2)
+    H_out = tf.reshape(tmp, [-1, n_output])  # (bs, n_output)
 
     # Define loss and optimizer, minimize the l2 loss
-    loss_ = '# YOUR CODE HERE 9'
+    loss_ = tf.reduce_mean(tf.square(H_out - H_true))
     global_step = tf.Variable(0, trainable=False)
     decay_steps, lr_decay = 20000, 0.1
     lr_ = tf.train.exponential_decay(learning_rate, global_step, decay_steps, lr_decay, name='lr')
