@@ -32,7 +32,7 @@ def build_ce_dnn(K, SNR, savefile, learning_rate=1e-3, training_epochs=2000, bat
     dense2 = Dense(nh2, activation=tf.nn.relu)(dense1)  # (bs, nh2)
     output_layer = Dense(n_output, activation=None)(dense2)  # (bs, n_output)
 
-    tmp = shrinkage.shrink_soft_threshold(output_layer, rvar=10.0**(-SNR/10), theta=tf.constant(0.3))[0]  # 只要tuple的第一个元素，(bs, n_output)
+    tmp = shrinkage.shrink_soft_threshold(output_layer, rvar=10.0**(-SNR/10), theta=tf.constant(0.001))[0]  # 只要tuple的第一个元素，(bs, n_output)
     tmp = tf.reshape(tmp, [-1, K, 2])  # (bs, K, 2)
     H_out = tf.reshape(tmp, [-1, n_output])  # (bs, n_output)
 
