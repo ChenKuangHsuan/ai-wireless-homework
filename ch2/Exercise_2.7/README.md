@@ -59,3 +59,7 @@
 在 **CP-Free** 場景下，傳統 LS 與 MMSE 會因為嚴重的 ISI 而導致 MSE 表現大幅下降，此時訓練良好的 DNN 通常展現出更強的魯棒性（Robustness），曲線會明顯低於傳統方法。
 
 ## 實驗結果
+一開始我訓練完DNN之後發現，在沒有CP的情況下DNN的表現甚至比MMSE和LS來的差，後來才發現這是因為我在訓練模型時，使用的是有CP的資料，這導致DNN模型在遇到沒有CP會產生的ISI(Inter-Symbol Interference)時，表現特別差。
+![Train with CP data](./train_with_cp_result.png)
+所以後來我又用沒有CP的資料訓練了一個模型，結果顯示與預期的相同，DNN在沒有CP時會比傳統的MMSE和LS有更好的魯棒性(Robustness)。
+![Train without CP data](./train_without_cp_result.png)
